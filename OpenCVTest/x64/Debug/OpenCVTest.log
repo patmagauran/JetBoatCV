@@ -1,1 +1,0 @@
-﻿C:\Users\patma\source\repos\JetBoatCV\OpenCVTest\OpenCVTest.vcxproj(72,5): error MSB4019: The imported project "C:\Users\patma\source\repos\JetBoatCV\OpenCVTest\OpenCV_Debug.props" was not found. Confirm that the expression in the Import declaration "OpenCV_Debug.props" is correct, and that the file exists on disk.
