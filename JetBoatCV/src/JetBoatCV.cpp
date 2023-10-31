@@ -4,7 +4,14 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
+#include <opencv2/tracking.hpp>
+#include <opencv2/core/ocl.hpp>
 
+using namespace std;
+
+// Convert to string
+#define SSTR( x ) static_cast< std::ostringstream & >( \
+( std::ostringstream() << std::dec << x ) ).str()
 #include <iostream>
 using namespace cv;
 int main(int argc, char** argv)
@@ -14,6 +21,7 @@ int main(int argc, char** argv)
 
 		cv::VideoCapture cap;
 		cv::QRCodeDetector qrDecoder = cv::QRCodeDetector::QRCodeDetector();
+		Ptr<Tracker> tracker = TrackerKCF::create();
 		if (argc == 1) {
 
 			cap.open(0);   // To open the first camera
@@ -36,7 +44,16 @@ int main(int argc, char** argv)
 		}
 
 		cv::Mat frame;
+		cap >> frame;
+		std::vector<cv::String> data;
+		std::vector<cv::Point> points;
+		qrDecoder.detectMulti(frame, points);
 
+		Rect bbox(points[0], points[2]);
+		rectangle(frame, bbox, Scalar(255, 0, 0), 2, 1);
+
+		imshow("Tracking", frame);
+		tracker->init(frame, bbox);
 		while (1) {
 
 			cap >> frame;
@@ -45,19 +62,39 @@ int main(int argc, char** argv)
 
 				break;
 
-			cv::imshow("test", frame);
-			std::vector<cv::String> data;
-			std::vector<cv::Point> points;
-			qrDecoder.detectAndDecodeMulti(frame, data, points);
-			for (auto& it : data)
+			// Start timer
+			double timer = (double)getTickCount();
+
+			// Update the tracking result
+			bool ok = tracker->update(frame, bbox);
+
+			// Calculate Frames per second (FPS)
+			float fps = getTickFrequency() / ((double)getTickCount() - timer);
+
+			if (ok)
 			{
-				std::cout << it << std::endl;
+				// Tracking success : Draw the tracked object
+				rectangle(frame, bbox, Scalar(255, 0, 0), 2, 1);
 			}
-			for (auto& it : points)
+			else
 			{
-				std::cout << it << std::endl;
+				// Tracking failure detected.
+				putText(frame, "Tracking failure detected", Point(100, 80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 0, 255), 2);
 			}
-			if (cv::waitKey(30) >= 0) {
+
+			// Display tracker type on frame
+			putText(frame,  " Tracker", Point(100, 20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50, 170, 50), 2);
+
+			// Display FPS on frame
+			putText(frame, "FPS : " + to_string(fps), Point(100, 50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50, 170, 50), 2);
+
+			// Display frame.
+			imshow("Tracking", frame);
+
+			// Exit if ESC pressed.
+			int k = waitKey(1);
+			if (k == 27)
+			{
 				break;
 			}
 

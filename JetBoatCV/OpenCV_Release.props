@@ -9,7 +9,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world480.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_alphamat480d.lib;opencv_aruco480d.lib;opencv_bgsegm480d.lib;opencv_bioinspired480d.lib;opencv_calib3d480d.lib;opencv_ccalib480d.lib;opencv_core480d.lib;opencv_datasets480d.lib;opencv_dnn480d.lib;opencv_dnn_objdetect480d.lib;opencv_dnn_superres480d.lib;opencv_dpm480d.lib;opencv_face480d.lib;opencv_features2d480d.lib;opencv_flann480d.lib;opencv_fuzzy480d.lib;opencv_gapi480d.lib;opencv_hfs480d.lib;opencv_highgui480d.lib;opencv_imgcodecs480d.lib;opencv_imgproc480d.lib;opencv_img_hash480d.lib;opencv_intensity_transform480d.lib;opencv_line_descriptor480d.lib;opencv_mcc480d.lib;opencv_ml480d.lib;opencv_objdetect480d.lib;opencv_optflow480d.lib;opencv_phase_unwrapping480d.lib;opencv_photo480d.lib;opencv_plot480d.lib;opencv_quality480d.lib;opencv_rapid480d.lib;opencv_reg480d.lib;opencv_rgbd480d.lib;opencv_saliency480d.lib;opencv_shape480d.lib;opencv_stereo480d.lib;opencv_stitching480d.lib;opencv_structured_light480d.lib;opencv_superres480d.lib;opencv_surface_matching480d.lib;opencv_text480d.lib;opencv_tracking480d.lib;opencv_video480d.lib;opencv_videoio480d.lib;opencv_videostab480d.lib;opencv_wechat_qrcode480d.lib;opencv_xfeatures2d480d.lib;opencv_ximgproc480d.lib;opencv_xobjdetect480d.lib;opencv_xphoto480d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />
