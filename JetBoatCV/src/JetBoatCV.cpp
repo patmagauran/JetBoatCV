@@ -1,11 +1,14 @@
 // JetBoatCV.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//https://cppsecrets.com/users/152911510411798104971095548554848555648494864103109971051084699111109/C00-OpenCV-Taking-input-from-camera.php   
+//https://cppsecrets.com/users/152911510411798104971095548554848555648494864103109971051084699111109/C00-OpenCV-Taking-input-from-camera.php
+//https://learnopencv.com/object-tracking-using-opencv-cpp-python/
 
+//When compiling opencv, include intelOneAPI(TBB, OPenMP, MKL), and gstreamer
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 #include <opencv2/core/ocl.hpp>
+#include <opencv2/aruco.hpp>
 
 using namespace std;
 
@@ -42,17 +45,66 @@ int main(int argc, char** argv)
 			return -1;
 
 		}
+		/*
+		1. Work by detecting aruco markers. User has to start tracking
+		2. Once tracking starts, run in parallel, the detecting and tracking
+		3. Rely on detecting. if detecting fails, use tracking
+		4. Reinitialize tracking at a certain interval
+		5. If tracking fails, reinitialize tracking
+		
+		*/
 
 		cv::Mat frame;
-		cap >> frame;
 		std::vector<cv::String> data;
 		std::vector<cv::Point> points;
-		qrDecoder.detectMulti(frame, points);
 
+		cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
+		cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_MIP_36h12);
+		cv::aruco::ArucoDetector detector(dictionary, detectorParams);
+
+		while (1) {
+			cap >> frame;
+
+			if (frame.empty())
+
+				break;
+
+			cv::Mat imageCopy;
+			frame.copyTo(imageCopy);
+			std::vector<int> ids;
+			std::vector<std::vector<cv::Point2f>> corners, rejected;
+			detector.detectMarkers(frame, corners, ids, rejected);
+			// if at least one marker detected
+			if (ids.size() > 0)
+				cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+			cv::imshow("test", imageCopy);
+		
+/*
+			cv::imshow("test", frame);
+		//	std::vector<cv::String> data;
+			std::vector<cv::Point> points2;
+			//qrDecoder.detectAndDecodeMulti(frame, data, points);
+			qrDecoder.detectMulti(frame, points2);
+
+			for (auto& it : data)
+			{
+				std::cout << it << std::endl;
+			}
+			for (auto& it : points2)
+			{
+				std::cout << it << std::endl;
+			}
+			*/
+			if (cv::waitKey(30) >= 0) {
+				break;
+			}
+
+
+		}
 		Rect bbox(points[0], points[2]);
 		rectangle(frame, bbox, Scalar(255, 0, 0), 2, 1);
 
-		imshow("Tracking", frame);
+		imshow("test", frame);
 		tracker->init(frame, bbox);
 		while (1) {
 
@@ -89,7 +141,7 @@ int main(int argc, char** argv)
 			putText(frame, "FPS : " + to_string(fps), Point(100, 50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50, 170, 50), 2);
 
 			// Display frame.
-			imshow("Tracking", frame);
+			imshow("test", frame);
 
 			// Exit if ESC pressed.
 			int k = waitKey(1);
