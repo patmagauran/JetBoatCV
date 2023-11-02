@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
 		cv::Mat frame;
 		std::vector<cv::String> data;
-		std::vector<cv::Point> points;
+		std::vector<cv::Point2f> points;
 
 		cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
 		cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_MIP_36h12);
@@ -75,8 +75,10 @@ int main(int argc, char** argv)
 			std::vector<std::vector<cv::Point2f>> corners, rejected;
 			detector.detectMarkers(frame, corners, ids, rejected);
 			// if at least one marker detected
-			if (ids.size() > 0)
+			if (ids.size() > 0) {
 				cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+				points = corners[0];
+			}
 			cv::imshow("test", imageCopy);
 		
 /*

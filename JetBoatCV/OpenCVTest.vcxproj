@@ -107,6 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,10 +131,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Tracking\ArucoTracker.cpp" />
+    <ClCompile Include="src\Tracking\MultiTracker.cpp" />
+    <ClCompile Include="src\Tracking\ObjectTrackingTracker.cpp" />
+    <ClCompile Include="src\CameraThread.cpp" />
+    <ClCompile Include="src\MainWindow.cpp" />
     <ClCompile Include="src\JetBoatCV.cpp" />
+    <ClCompile Include="src\State.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\.gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Tracking\ArucoTracker.h" />
+    <ClInclude Include="src\Tracking\MultiTracker.h" />
+    <ClInclude Include="src\Tracking\ObjectTrackingTracker.h" />
+    <ClInclude Include="src\CameraThread.h" />
+    <ClInclude Include="src\MainWindow.h" />
+    <ClInclude Include="src\State.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
