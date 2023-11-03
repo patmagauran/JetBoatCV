@@ -10,7 +10,7 @@ private:
 	void run();
 
 	public:
-		MainWindow();
+		MainWindow(std::shared_ptr <State> state);
 	~MainWindow();
 };
 

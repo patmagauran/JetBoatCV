@@ -45,6 +45,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <UseInteloneTBB>true</UseInteloneTBB>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -131,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Tracking\Pose.cpp" />
     <ClCompile Include="src\Tracking\ArucoTracker.cpp" />
     <ClCompile Include="src\Tracking\MultiTracker.cpp" />
     <ClCompile Include="src\Tracking\ObjectTrackingTracker.cpp" />
@@ -143,6 +145,7 @@
     <None Include="..\.gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Tracking\Pose.h" />
     <ClInclude Include="src\Tracking\ArucoTracker.h" />
     <ClInclude Include="src\Tracking\MultiTracker.h" />
     <ClInclude Include="src\Tracking\ObjectTrackingTracker.h" />

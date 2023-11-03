@@ -1,10 +1,89 @@
 #include "MultiTracker.h"
+#include "../State.h"
+#include "./ObjectTrackingTracker.h"
+#include "./ArucoTracker.h"
+#include <opencv2/core/types.hpp>
+#include "./Pose.h"
+using namespace cv;
+void MultiTracker::initializeObjectTracker() {
+	objectTracker->TriggerReinitialization();
+}
+
+
 
 void MultiTracker::run()
 {
+	std::shared_ptr<MultiTracker> multiTracker = std::shared_ptr<MultiTracker>(this);
+	this->arucoTracker = std::make_shared<ArucoTracker>(multiTracker, BOW_CODE, STERN_CODE);
+	this->objectTracker = std::make_shared<ObjectTrackingTracker>(multiTracker);
+	while (1) {
+		if (state->getStage() == STOPPING) {
+			break;
+		}
+		if (state->getFrameCount() % 30 == 0) {
+			initializeObjectTracker();
+		}
+		if (state->getStage() == RUNNING) {
+			arucoMutex.lock();
+			Pose arucoPoseCopy = arucoPose;
+			double arucoQualityCopy = arucoQuality;
+			arucoMutex.unlock();
+
+			trackingMutex.lock();
+			Pose trackingPoseCopy = trackingPose;
+			double trackingQualityCopy = trackingQuality;
+			trackingMutex.unlock();
+
+			float posDiff = abs(cv::norm(arucoPoseCopy.position - trackingPoseCopy.position));
+
+			float rotDiff = abs(arucoPoseCopy.rotation - trackingPoseCopy.rotation);
+
+			if (posDiff > POSITION_DIFF_CUTOFF || rotDiff > ROTATION_DIFF_CUTOFF) {
+				initializeObjectTracker();
+			}
+			if (arucoQualityCopy > trackingQualityCopy) {
+				finalPose = arucoPoseCopy;
+			}
+			else {
+				finalPose = trackingPoseCopy;
+			}
+			state->addPose(finalPose);
+		}
+		if (state->getStage() == ALIGNCONFIRMEDBYUSER) {
+			//check that we have two codes
+			arucoMutex.lock();
+			if (bowCodeRect.size.empty() || bowCodeRect.size.empty()) {
+				std::cout << "Both ArUco codes not detected, alignment not done!" << std::endl;
+				state->setStage(AppStage::ALIGNINGFRAME);
+			}
+			else {
+				//Calculate the code distance and angle
+				Point2f bowCenter = bowCodeRect.center;
+				Point2f sternCenter = sternCodeRect.center;
+				float bowAngle = bowCodeRect.angle;
+				float sternAngle = sternCodeRect.angle;
+				float distance = norm(bowCenter - sternCenter);
+				codeSpacing = distance;
+				codeAngle = bowAngle - sternAngle;
+				
+				state->setStage(AppStage::RUNNING);
+			}
+			arucoMutex.unlock();
+		}
+
+		//Do comparison of the two poses and do the voting
+
+		//Every 30 frames we will reinitialize the object tracker
+	}
+
+	//We shouldn't set the frame. They should just get it
+
+
 	//If we are in the Aligning state it will only run the aruco. Once we move to running it will also run the object tracker.
 
 	//Needs to communicate aruco corners to the object tracker
+
+
 
 
 	//This will take in the latest frame and copy it to be processed by the trackers
@@ -14,7 +93,7 @@ void MultiTracker::run()
 
 }
 
-MultiTracker::MultiTracker()
+MultiTracker::MultiTracker(std::shared_ptr <State> state) : state(state)
 {
 	MultiTrackerThread = std::thread(&MultiTracker::run, this);
 }
@@ -25,4 +104,55 @@ MultiTracker::~MultiTracker()
 {
 	MultiTrackerThread.join();
 
+}
+
+cv::Mat MultiTracker::getFrame()
+{
+	return state->getLatestFrame();
+}
+
+void MultiTracker::setArucoData(Pose pose, double quality, cv::RotatedRect bowRect, cv::RotatedRect sternRect)
+{
+	arucoMutex.lock();
+	arucoPose = pose;
+	arucoQuality = quality;
+	bowCodeRect = bowRect;
+	sternCodeRect = sternRect;
+	arucoMutex.unlock();
+
+}
+
+void MultiTracker::setTrackingPose(Pose pose, double quality)
+{
+	trackingMutex.lock();
+	trackingPose = pose;
+	trackingQuality = quality;
+	trackingMutex.unlock();
+}
+
+
+
+void MultiTracker::getBowSternRect(cv::Rect& bowRect, cv::Rect& sternRect)
+{
+	arucoMutex.lock();
+	Rect bowRectCopy = bowCodeRect.boundingRect();
+	Rect sternRectCopy = sternCodeRect.boundingRect();
+	bowRect = bowRectCopy;
+	sternRect = sternRectCopy;
+	arucoMutex.unlock();
+}
+
+double MultiTracker::getCodeSpacing()
+{
+	return codeSpacing;
+}
+
+double MultiTracker::getCodeAngle()
+{
+	return codeAngle;
+}
+
+AppStage MultiTracker::getStage()
+{
+	return state->getStage();
 }

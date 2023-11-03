@@ -10,27 +10,64 @@ State::~State()
 
 void State::setStage(AppStage stage)
 {
+	this->stage.store(stage);
 }
 
 AppStage State::getStage()
 {
-	return AppStage();
+	return this->stage.load();
 }
 
-void State::setPoints(std::vector<cv::Point2f> points)
-{
-}
 
 std::vector<cv::Point2f> State::getPoints()
 {
-	return std::vector<cv::Point2f>();
+	return points;
+}
+
+void State::addPose(Pose pose)
+{
+	//need to research risk of inserting while reading. We don't care if we don't recieve the latest point, but need to be sure. 
+	this->latestPose.store(pose);
+	points.push_back(pose.position);
+}
+
+Pose State::getPose()
+{
+	return latestPose.load();
+}
+
+//void State::setBoatRect(cv::RotatedRect boatRect)
+//{
+//
+//}
+//
+//cv::RotatedRect State::getBoatRect()
+//{
+//	return cv::RotatedRect();
+//}
+
+//cv::Mat State::getDisplayFrame()
+//{
+//	return cv::Mat();
+//}
+
+int State::getFrameCount()
+{
+	return frameCount.load();
 }
 
 void State::setLatestFrame(cv::Mat frame)
 {
+	frameMutex.lock();
+	this->latestFrame = frame;
+	frameCount++;
+	frameMutex.unlock();
 }
 
 cv::Mat State::getLatestFrame()
 {
-	return cv::Mat();
+	frameMutex.lock();
+	cv::Mat latestFrameCopy = this->latestFrame.clone();
+	frameMutex.unlock();
+	return latestFrameCopy;
 }

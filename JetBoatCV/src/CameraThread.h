@@ -10,6 +10,6 @@ private:
 	void run();
 
 public:
-	CameraThread();
+	CameraThread(std::shared_ptr <State> state);
 	~CameraThread();
 };

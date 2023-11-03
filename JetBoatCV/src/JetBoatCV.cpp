@@ -9,148 +9,39 @@
 #include <opencv2/tracking.hpp>
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/aruco.hpp>
-
+#include "Tracking/MultiTracker.h"
+#include "Tracking/Pose.h"
+#include "./State.h"
+#include "./CameraThread.h"
+#include "./MainWindow.h"
 using namespace std;
 
 // Convert to string
 #define SSTR( x ) static_cast< std::ostringstream & >( \
 ( std::ostringstream() << std::dec << x ) ).str()
 #include <iostream>
+
+
 using namespace cv;
+
+/*
+Main thread:
+- Start other threads
+*/
+
+
+
+
 int main(int argc, char** argv)
 {
 	try {
-		cv::namedWindow("test", WINDOW_AUTOSIZE);
 
-		cv::VideoCapture cap;
-		cv::QRCodeDetector qrDecoder = cv::QRCodeDetector::QRCodeDetector();
-		Ptr<Tracker> tracker = TrackerKCF::create();
-		if (argc == 1) {
+		std::shared_ptr<State> state = std::make_shared<State>();
+		std::shared_ptr<MultiTracker> tracker = std::make_shared<MultiTracker>(state);
+		std::shared_ptr<CameraThread> cameraThread = std::make_shared<CameraThread>(state);
+		std::shared_ptr<MainWindow> mainWindow = std::make_shared<MainWindow>(state);
 
-			cap.open(0);   // To open the first camera
-
-		}
-
-		else
-		{
-
-			cap.open(argv[1]);
-
-		}
-
-		if (!cap.isOpened()) {
-
-			std::cerr << "couldn't open capture." << std::endl;
-
-			return -1;
-
-		}
-		/*
-		1. Work by detecting aruco markers. User has to start tracking
-		2. Once tracking starts, run in parallel, the detecting and tracking
-		3. Rely on detecting. if detecting fails, use tracking
-		4. Reinitialize tracking at a certain interval
-		5. If tracking fails, reinitialize tracking
-		
-		*/
-
-		cv::Mat frame;
-		std::vector<cv::String> data;
-		std::vector<cv::Point2f> points;
-
-		cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
-		cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_MIP_36h12);
-		cv::aruco::ArucoDetector detector(dictionary, detectorParams);
-
-		while (1) {
-			cap >> frame;
-
-			if (frame.empty())
-
-				break;
-
-			cv::Mat imageCopy;
-			frame.copyTo(imageCopy);
-			std::vector<int> ids;
-			std::vector<std::vector<cv::Point2f>> corners, rejected;
-			detector.detectMarkers(frame, corners, ids, rejected);
-			// if at least one marker detected
-			if (ids.size() > 0) {
-				cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
-				points = corners[0];
-			}
-			cv::imshow("test", imageCopy);
-		
-/*
-			cv::imshow("test", frame);
-		//	std::vector<cv::String> data;
-			std::vector<cv::Point> points2;
-			//qrDecoder.detectAndDecodeMulti(frame, data, points);
-			qrDecoder.detectMulti(frame, points2);
-
-			for (auto& it : data)
-			{
-				std::cout << it << std::endl;
-			}
-			for (auto& it : points2)
-			{
-				std::cout << it << std::endl;
-			}
-			*/
-			if (cv::waitKey(30) >= 0) {
-				break;
-			}
-
-
-		}
-		Rect bbox(points[0], points[2]);
-		rectangle(frame, bbox, Scalar(255, 0, 0), 2, 1);
-
-		imshow("test", frame);
-		tracker->init(frame, bbox);
-		while (1) {
-
-			cap >> frame;
-
-			if (frame.empty())
-
-				break;
-
-			// Start timer
-			double timer = (double)getTickCount();
-
-			// Update the tracking result
-			bool ok = tracker->update(frame, bbox);
-
-			// Calculate Frames per second (FPS)
-			float fps = getTickFrequency() / ((double)getTickCount() - timer);
-
-			if (ok)
-			{
-				// Tracking success : Draw the tracked object
-				rectangle(frame, bbox, Scalar(255, 0, 0), 2, 1);
-			}
-			else
-			{
-				// Tracking failure detected.
-				putText(frame, "Tracking failure detected", Point(100, 80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 0, 255), 2);
-			}
-
-			// Display tracker type on frame
-			putText(frame,  " Tracker", Point(100, 20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50, 170, 50), 2);
-
-			// Display FPS on frame
-			putText(frame, "FPS : " + to_string(fps), Point(100, 50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50, 170, 50), 2);
-
-			// Display frame.
-			imshow("test", frame);
-
-			// Exit if ESC pressed.
-			int k = waitKey(1);
-			if (k == 27)
-			{
-				break;
-			}
+		while (state->getStage() != STOPPING) {
 
 		}
 
@@ -172,3 +63,138 @@ int main(int argc, char** argv)
 //   4. Use the Error List window to view errors
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+
+
+//		cv::namedWindow("test", WINDOW_AUTOSIZE);
+//
+//		cv::VideoCapture cap;
+//		cv::QRCodeDetector qrDecoder = cv::QRCodeDetector::QRCodeDetector();
+//		Ptr<Tracker> tracker = TrackerKCF::create();
+//		if (argc == 1) {
+//
+//			cap.open(0);   // To open the first camera
+//
+//		}
+//
+//		else
+//		{
+//
+//			cap.open(argv[1]);
+//
+//		}
+//
+//		if (!cap.isOpened()) {
+//
+//			std::cerr << "couldn't open capture." << std::endl;
+//
+//			return -1;
+//
+//		}
+//		/*
+//		1. Work by detecting aruco markers. User has to start tracking
+//		2. Once tracking starts, run in parallel, the detecting and tracking
+//		3. Rely on detecting. if detecting fails, use tracking
+//		4. Reinitialize tracking at a certain interval
+//		5. If tracking fails, reinitialize tracking
+//		
+//		*/
+//
+//		cv::Mat frame;
+//		std::vector<cv::String> data;
+//		std::vector<cv::Point2f> points;
+//
+//		cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
+//		cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_MIP_36h12);
+//		cv::aruco::ArucoDetector detector(dictionary, detectorParams);
+//
+//		while (1) {
+//			cap >> frame;
+//
+//			if (frame.empty())
+//
+//				break;
+//
+//			cv::Mat imageCopy;
+//			frame.copyTo(imageCopy);
+//			std::vector<int> ids;
+//			std::vector<std::vector<cv::Point2f>> corners, rejected;
+//			detector.detectMarkers(frame, corners, ids, rejected);
+//			// if at least one marker detected
+//			if (ids.size() > 0) {
+//				cv::aruco::drawDetectedMarkers(imageCopy, corners, ids);
+//				points = corners[0];
+//			}
+//			cv::imshow("test", imageCopy);
+//		
+///*
+//			cv::imshow("test", frame);
+//		//	std::vector<cv::String> data;
+//			std::vector<cv::Point> points2;
+//			//qrDecoder.detectAndDecodeMulti(frame, data, points);
+//			qrDecoder.detectMulti(frame, points2);
+//
+//			for (auto& it : data)
+//			{
+//				std::cout << it << std::endl;
+//			}
+//			for (auto& it : points2)
+//			{
+//				std::cout << it << std::endl;
+//			}
+//			*/
+//			if (cv::waitKey(30) >= 0) {
+//				break;
+//			}
+//
+//
+//		}
+//		Rect bbox(points[0], points[2]);
+//		rectangle(frame, bbox, Scalar(255, 0, 0), 2, 1);
+//
+//		imshow("test", frame);
+//		tracker->init(frame, bbox);
+//		while (1) {
+//
+//			cap >> frame;
+//
+//			if (frame.empty())
+//
+//				break;
+//
+//			// Start timer
+//			double timer = (double)getTickCount();
+//
+//			// Update the tracking result
+//			bool ok = tracker->update(frame, bbox);
+//
+//			// Calculate Frames per second (FPS)
+//			float fps = getTickFrequency() / ((double)getTickCount() - timer);
+//
+//			if (ok)
+//			{
+//				// Tracking success : Draw the tracked object
+//				rectangle(frame, bbox, Scalar(255, 0, 0), 2, 1);
+//			}
+//			else
+//			{
+//				// Tracking failure detected.
+//				putText(frame, "Tracking failure detected", Point(100, 80), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0, 0, 255), 2);
+//			}
+//
+//			// Display tracker type on frame
+//			putText(frame,  " Tracker", Point(100, 20), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50, 170, 50), 2);
+//
+//			// Display FPS on frame
+//			putText(frame, "FPS : " + to_string(fps), Point(100, 50), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(50, 170, 50), 2);
+//
+//			// Display frame.
+//			imshow("test", frame);
+//
+//			// Exit if ESC pressed.
+//			int k = waitKey(1);
+//			if (k == 27)
+//			{
+//				break;
+//			}
+//
+//		}
