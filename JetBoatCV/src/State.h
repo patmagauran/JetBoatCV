@@ -7,6 +7,7 @@
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/aruco.hpp>
 #include "tracking/Pose.h"
+#include "Util/concurrent/AppendOnlyVector.h"
 enum AppStage
 {
 	STARTING, ALIGNINGFRAME, ALIGNCONFIRMEDBYUSER, RUNNING, STOPPING
@@ -19,7 +20,7 @@ class State
 
 
 	std::atomic<Pose> latestPose;
-	std::vector<cv::Point2f> points; // need to replace with concurrent structure
+	AppendOnlyVector<cv::Point2f> points; // need to replace with concurrent structure
 	//cv::RotatedRect boatRect;
 	cv::Mat latestFrame; // needs a mutex lock
 	std::mutex frameMutex;
@@ -35,7 +36,7 @@ public:
 	AppStage getStage();
 	void setLatestFrame(cv::Mat frame);
 	cv::Mat getLatestFrame();
-	std::vector<cv::Point2f> getPoints();
+	AppendOnlyVector<cv::Point2f> getPoints();
 
 	void addPose(Pose pose);
 	Pose getPose();

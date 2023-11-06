@@ -152,6 +152,12 @@
     <ClInclude Include="src\CameraThread.h" />
     <ClInclude Include="src\MainWindow.h" />
     <ClInclude Include="src\State.h" />
+    <ClInclude Include="src\Util\concurrent\AppendOnlyVector.h" />
+    <ClInclude Include="src\Util\concurrent\atomicops.h" />
+    <ClInclude Include="src\Util\concurrent\readerwriterqueue.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\..\..\..\..\lib\opencv4build\install\x64\vc17\bin\cameraParameters.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

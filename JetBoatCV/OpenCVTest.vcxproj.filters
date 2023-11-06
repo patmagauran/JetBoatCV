@@ -65,5 +65,17 @@
     <ClInclude Include="src\Tracking\Pose.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Util\concurrent\AppendOnlyVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\concurrent\atomicops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Util\concurrent\readerwriterqueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\..\..\..\..\lib\opencv4build\install\x64\vc17\bin\cameraParameters.xml" />
   </ItemGroup>
 </Project>

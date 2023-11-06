@@ -23,7 +23,7 @@ void MainWindow::run()
 			continue;
 		}
 		cv::Mat displayFrame = frame.clone();
-		std::vector<Point2f> points = state->getPoints();
+		AppendOnlyVector<Point2f> points = state->getPoints();
 
 		Pose pose = state->getPose();
 
