@@ -113,9 +113,9 @@ void ArucoTracker::run()
 			float qualityPos = 1 - (abs(difference) / multiTracker->getCodeSpacing());
 			float qualityAngle = 1 - (abs(angleDifference) / multiTracker->getCodeAngle());
 
-			float quality = (qualityPos * QUALITY_COEF_POSITION) + (qualityAngle * QUALITY_COEF_ROTATION);
+			quality = (qualityPos * QUALITY_COEF_POSITION) + (qualityAngle * QUALITY_COEF_ROTATION);
 		}
-		multiTracker->setArucoData(Pose(center, angle), quality, bowRect, sternRect);
+		multiTracker->setArucoData(Pose(center, angle), quality, bowRect, sternRect, ids, corners);
 
 
 	}

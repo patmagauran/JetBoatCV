@@ -11,24 +11,28 @@ void ObjectTrackingTracker::run()
 
 	Ptr<Tracker> trackerBow = TrackerKCF::create();
 	Ptr<Tracker> trackerStern = TrackerKCF::create();
-	Rect bboxBow, bboxStern;
 	while (1) {
+		Rect bboxBow, bboxStern;
+
 		if (multiTracker->getStage() != AppStage::RUNNING) {
-			break;
+			continue;
 		}
-		cv::Mat frame = multiTracker->getFrame();
+		cv::Mat frame = multiTracker->getFrame().clone();
 		if (reinitializeTracker.load()) {
 			multiTracker->getBowSternRect(bboxBow, bboxStern);
 			if (!(bboxBow.size().empty() || bboxStern.size().empty())) {
 				trackerBow->init(frame, bboxBow);
 				trackerStern->init(frame, bboxStern);
 				reinitializeTracker.store(false);
+				continue;
 			}
 		}
+		bboxBow = Rect();
+		bboxStern = Rect();
 		bool okBow = trackerBow->update(frame, bboxBow);
 		bool okStern = trackerStern->update(frame, bboxStern);
 		Pose pose;
-		float quality;
+		float quality = 1;
 		if (okBow && okStern) {
 
 			Point2f bowCenter = (bboxBow.br() + bboxBow.tl()) * 0.5;
@@ -55,7 +59,7 @@ void ObjectTrackingTracker::run()
 			quality = 0;
 		}
 		
-		multiTracker->setTrackingPose(pose, quality);
+		multiTracker->setTrackingPose(pose, quality, bboxBow, bboxStern);
 		
 	}
 

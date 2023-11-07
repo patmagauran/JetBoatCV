@@ -26,7 +26,10 @@ class State
 	std::mutex frameMutex;
 //	cv::Mat displayFrame;
 	std::atomic_uint64_t frameCount = 0;
-
+	cv::Rect bboxBow, bboxStern;
+	std::vector<int> ids;
+	std::vector<std::vector<cv::Point2f>> corners;
+	std::atomic<float> arucoQuality, trackingQuality;
 	//Other possible things to track -> number of aruco markers, number of points, 
 
 public:
@@ -38,6 +41,10 @@ public:
 	cv::Mat getLatestFrame();
 	AppendOnlyVector<cv::Point2f> getPoints();
 
+	void setArucoData(std::vector<int> ids, std::vector<std::vector<cv::Point2f>> corners, float quality);
+	void getArucoData(std::vector<int>& ids, std::vector<std::vector<cv::Point2f>>& corners, float& quality);
+	void setTrackingData(cv::Rect bboxBow, cv::Rect bboxStern, float quality);
+	void getTrackingData(cv::Rect& bboxBow, cv::Rect& bboxStern, float& quality);
 	void addPose(Pose pose);
 	Pose getPose();
 	//void setPoints(std::vector<cv::Point2f> points);

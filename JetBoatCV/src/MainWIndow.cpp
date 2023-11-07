@@ -46,6 +46,30 @@ void MainWindow::run()
 			circle(displayFrame, points[i], 5, Scalar(0, 0, 255), -1);
 		}
 
+		//Draw Aruco markers
+		std::vector<int> ids;
+		std::vector<std::vector<cv::Point2f>> corners;
+		float arucoQuality, trackingQuality;
+		state->getArucoData(ids, corners, arucoQuality);
+		cv::aruco::drawDetectedMarkers(displayFrame, corners, ids);
+		
+
+		//Draw tracking boxes
+		cv::Rect bboxBow, bboxStern;
+		state->getTrackingData(bboxBow, bboxStern, trackingQuality);
+		rectangle(displayFrame, bboxBow, Scalar(255, 0, 0), 2, 1);
+		rectangle(displayFrame, bboxStern, Scalar(255, 0, 0), 2, 1);
+
+		//Write quality text
+		std::string arucoQualityText = "Aruco Quality: " + std::to_string(arucoQuality);
+		std::string trackingQualityText = "Tracking Quality: " + std::to_string(trackingQuality);
+		putText(displayFrame, arucoQualityText, Point(10, 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+		putText(displayFrame, trackingQualityText, Point(10, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+
+		//Display current stage
+		std::string stageText = "Stage: " + std::to_string(state->getStage());
+		putText(displayFrame, stageText, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+
 
 		cv::imshow("test", displayFrame);
 

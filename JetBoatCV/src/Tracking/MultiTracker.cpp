@@ -16,6 +16,7 @@ void MultiTracker::run()
 	std::shared_ptr<MultiTracker> multiTracker = std::shared_ptr<MultiTracker>(this);
 	this->arucoTracker = std::make_shared<ArucoTracker>(multiTracker, BOW_CODE, STERN_CODE);
 	this->objectTracker = std::make_shared<ObjectTrackingTracker>(multiTracker);
+	bool aruco = true;
 	while (1) {
 		if (state->getStage() == STOPPING) {
 			break;
@@ -34,6 +35,9 @@ void MultiTracker::run()
 			double trackingQualityCopy = trackingQuality;
 			trackingMutex.unlock();
 
+			//Should also keep track of latest tracking quality and aruco quality to write on screen
+			//Also keep data necessary to display marker boxes on screen
+
 			float posDiff = abs(cv::norm(arucoPoseCopy.position - trackingPoseCopy.position));
 
 			float rotDiff = abs(arucoPoseCopy.rotation - trackingPoseCopy.rotation);
@@ -43,8 +47,16 @@ void MultiTracker::run()
 			}
 			if (arucoQualityCopy > trackingQualityCopy) {
 				finalPose = arucoPoseCopy;
+				if (!aruco) {
+					std::cout << "Switching to ArUco" << std::endl;
+					aruco = true;
+				}
 			}
 			else {
+				if (aruco) {
+					std::cout << "Switching to Object Tracker" << std::endl;
+					aruco = false;
+				}
 				finalPose = trackingPoseCopy;
 			}
 			state->addPose(finalPose);
@@ -111,22 +123,24 @@ cv::Mat MultiTracker::getFrame()
 	return state->getLatestFrame();
 }
 
-void MultiTracker::setArucoData(Pose pose, double quality, cv::RotatedRect bowRect, cv::RotatedRect sternRect)
+void MultiTracker::setArucoData(Pose pose, double quality, cv::RotatedRect bowRect, cv::RotatedRect sternRect, std::vector<int> ids, std::vector<std::vector<cv::Point2f>> corners)
 {
 	arucoMutex.lock();
 	arucoPose = pose;
 	arucoQuality = quality;
 	bowCodeRect = bowRect;
 	sternCodeRect = sternRect;
+	this->state->setArucoData(ids, corners, quality);
 	arucoMutex.unlock();
 
 }
 
-void MultiTracker::setTrackingPose(Pose pose, double quality)
+void MultiTracker::setTrackingPose(Pose pose, double quality, cv::Rect bboxBow, cv::Rect bboxStern)
 {
 	trackingMutex.lock();
 	trackingPose = pose;
 	trackingQuality = quality;
+	this->state->setTrackingData(bboxBow, bboxStern, quality);
 	trackingMutex.unlock();
 }
 

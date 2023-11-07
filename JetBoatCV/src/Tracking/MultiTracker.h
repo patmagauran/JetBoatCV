@@ -32,6 +32,11 @@ private:
 	Pose arucoPose, trackingPose, finalPose;
 	double arucoQuality, trackingQuality;
 	cv::RotatedRect bowCodeRect, sternCodeRect;
+
+	//cv::Rect bboxBow, bboxStern;
+	//std::vector<int> ids;
+	//std::vector<std::vector<cv::Point2f>> corners;
+
 	double codeSpacing, codeAngle;
 	void run();
 	void initializeObjectTracker();
@@ -39,8 +44,8 @@ public:
 	MultiTracker(std::shared_ptr <State> state);
 	~MultiTracker();
 	cv::Mat getFrame();
-	void setArucoData(Pose pose, double quality, cv::RotatedRect bowRect, cv::RotatedRect sternRect);
-	void setTrackingPose(Pose pose, double quality);
+	void setArucoData(Pose pose, double quality, cv::RotatedRect bowRect, cv::RotatedRect sternRect, std::vector<int> ids, std::vector<std::vector<cv::Point2f>> corners);
+	void setTrackingPose(Pose pose, double quality, cv::Rect bboxBow, cv::Rect bboxStern);
 	//void setBowCodeRect(cv::RotatedRect rect);
 	//void setSternCodeRect(cv::RotatedRect rect);
 	void getBowSternRect(cv::Rect& bowRect, cv::Rect& sternRect);
