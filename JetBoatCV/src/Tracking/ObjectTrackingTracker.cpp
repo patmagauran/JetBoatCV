@@ -3,6 +3,26 @@
 #include <opencv2/tracking.hpp>
 #include "./MultiTracker.h"
 using namespace cv;
+bool isTrackerRectEmpty(Rect rect) {
+	//std::cout << "Rect width: " << rect.width << std::endl;
+	//std::cout << "Rect height: " << rect.height << std::endl;
+	//The ArUco tracker returns a 1x1 rect if it has lost the marker, therefore it is not "empty"
+	return rect.width <= 1 || rect.height <= 1;
+}
+
+bool bothArUcosTracked(Rect bow, Rect stern) {
+	if (isTrackerRectEmpty(bow)) {
+		return false;
+	}
+	if (isTrackerRectEmpty(stern)) {
+		return false;
+	}
+	return true;
+
+
+	//return !isTrackerRectEmpty(bow) && !isTrackerRectEmpty(stern);
+}
+
 void ObjectTrackingTracker::run()
 {
 
@@ -17,24 +37,28 @@ void ObjectTrackingTracker::run()
 		if (multiTracker->getStage() != AppStage::RUNNING) {
 			continue;
 		}
-		cv::Mat frame = multiTracker->getFrame().clone();
+		cv::Mat frameBow = multiTracker->getFrame().clone();
+		cv::Mat frameStern = multiTracker->getFrame().clone();
 		if (reinitializeTracker.load()) {
+		//	std::cout << "We need to reinit the tracker" << std::endl;
 			multiTracker->getBowSternRect(bboxBow, bboxStern);
-			if (!(bboxBow.size().empty() || bboxStern.size().empty())) {
-				trackerBow->init(frame, bboxBow);
-				trackerStern->init(frame, bboxStern);
+			if (bothArUcosTracked(bboxBow, bboxStern)) {
+				trackerBow = TrackerKCF::create();
+				trackerStern = TrackerKCF::create();
+				trackerBow->init(frameBow, bboxBow);
+				trackerStern->init(frameStern, bboxStern);
 				reinitializeTracker.store(false);
 				continue;
 			}
 		}
 		bboxBow = Rect();
 		bboxStern = Rect();
-		bool okBow = trackerBow->update(frame, bboxBow);
-		bool okStern = trackerStern->update(frame, bboxStern);
+		bool okBow = trackerBow->update(frameBow, bboxBow);
+		bool okStern = trackerStern->update(frameStern, bboxStern);
 		Pose pose;
 		float quality = 1;
 		if (okBow && okStern) {
-
+			//std::cout << "We have tracked both bow and stern" << std::endl;
 			Point2f bowCenter = (bboxBow.br() + bboxBow.tl()) * 0.5;
 			Point2f sternCenter = (bboxStern.br() + bboxStern.tl()) * 0.5;
 			Point2f center = (bowCenter + sternCenter) / 2;
@@ -56,6 +80,8 @@ void ObjectTrackingTracker::run()
 			pose = Pose(center, angle);
 		}
 		else {
+		//	std::cout << "We have not tracked both bow" << okBow << "and stern" << okStern << std::endl;
+
 			quality = 0;
 		}
 		
@@ -89,5 +115,6 @@ void ObjectTrackingTracker::TriggerReinitialization()
 {
 	//On initialization we will not reset it until we have two rectangles from aruco
 	reinitializeTracker.store(true);
+	//std::cout << "We have triggered reinitialization" << std::endl;
 }
 

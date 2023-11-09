@@ -5,8 +5,11 @@
 #include <opencv2/core/types.hpp>
 #include "./Pose.h"
 using namespace cv;
-void MultiTracker::initializeObjectTracker() {
-	objectTracker->TriggerReinitialization();
+void MultiTracker::initializeObjectTracker(bool immediate) {
+	if (immediate || this->state->getFrameCount() - lastObjectInitilizationFrame > 30) {
+		objectTracker->TriggerReinitialization();
+		lastObjectInitilizationFrame = this->state->getFrameCount();
+	}
 }
 
 
@@ -17,12 +20,13 @@ void MultiTracker::run()
 	this->arucoTracker = std::make_shared<ArucoTracker>(multiTracker, BOW_CODE, STERN_CODE);
 	this->objectTracker = std::make_shared<ObjectTrackingTracker>(multiTracker);
 	bool aruco = true;
+	initializeObjectTracker(true);
 	while (1) {
 		if (state->getStage() == STOPPING) {
 			break;
 		}
 		if (state->getFrameCount() % 30 == 0) {
-			initializeObjectTracker();
+			//initializeObjectTracker();
 		}
 		if (state->getStage() == RUNNING) {
 			arucoMutex.lock();

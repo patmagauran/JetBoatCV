@@ -23,7 +23,7 @@ class State
 	AppendOnlyVector<cv::Point2f> points; // need to replace with concurrent structure
 	//cv::RotatedRect boatRect;
 	cv::Mat latestFrame; // needs a mutex lock
-	std::mutex frameMutex;
+	std::mutex frameMutex, arucoDataMutex, trackingDataMutex;
 //	cv::Mat displayFrame;
 	std::atomic_uint64_t frameCount = 0;
 	cv::Rect bboxBow, bboxStern;

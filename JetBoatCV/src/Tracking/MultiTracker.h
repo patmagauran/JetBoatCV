@@ -32,6 +32,7 @@ private:
 	Pose arucoPose, trackingPose, finalPose;
 	double arucoQuality, trackingQuality;
 	cv::RotatedRect bowCodeRect, sternCodeRect;
+	long lastObjectInitilizationFrame = 0;
 
 	//cv::Rect bboxBow, bboxStern;
 	//std::vector<int> ids;
@@ -39,7 +40,7 @@ private:
 
 	double codeSpacing, codeAngle;
 	void run();
-	void initializeObjectTracker();
+	void initializeObjectTracker(bool immediate = false);
 public:
 	MultiTracker(std::shared_ptr <State> state);
 	~MultiTracker();

@@ -27,6 +27,7 @@ AppendOnlyVector<cv::Point2f> State::getPoints()
 
 void State::setArucoData(std::vector<int> ids, std::vector<std::vector<cv::Point2f>> corners, float quality)
 {
+	const std::lock_guard<std::mutex> lock(arucoDataMutex);
 	this->ids.clear();
 	this->corners.clear();
 	this->arucoQuality = quality;
@@ -41,6 +42,7 @@ void State::setArucoData(std::vector<int> ids, std::vector<std::vector<cv::Point
 
 void State::getArucoData(std::vector<int>& ids, std::vector<std::vector<cv::Point2f>>& corners, float& quality)
 {
+	const std::lock_guard<std::mutex> lock(arucoDataMutex);
 	// Need to make copies of ids and corners
 	ids.clear();
 	corners.clear();
@@ -56,6 +58,8 @@ void State::getArucoData(std::vector<int>& ids, std::vector<std::vector<cv::Poin
 
 void State::setTrackingData(cv::Rect bboxBow, cv::Rect bboxStern, float quality)
 {
+	const std::lock_guard<std::mutex> lock(trackingDataMutex);
+
 	this->bboxBow = bboxBow;
 	this->bboxStern = bboxStern;
 	this->trackingQuality = quality;
@@ -63,6 +67,8 @@ void State::setTrackingData(cv::Rect bboxBow, cv::Rect bboxStern, float quality)
 
 void State::getTrackingData(cv::Rect& bboxBow, cv::Rect& bboxStern, float& quality)
 {
+	const std::lock_guard<std::mutex> lock(trackingDataMutex);
+
 	bboxBow = this->bboxBow;
 	bboxStern = this->bboxStern;
 	quality = this->trackingQuality;
