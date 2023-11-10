@@ -81,7 +81,9 @@ void State::addPose(Pose pose)
 	//need to research risk of inserting while reading. We don't care if we don't recieve the latest point, but need to be sure.
 	constexpr auto tolerance = 0.1;
 	//compare to latest pose and only insert if different enough
-	if (latestPose.load().position.x - pose.position.x > tolerance || latestPose.load().position.y - pose.position.y > tolerance || latestPose.load().rotation - pose.rotation > tolerance) {
+	if (abs(latestPose.load().position.x - pose.position.x) > tolerance || 
+		abs(latestPose.load().position.y - pose.position.y) > tolerance || 
+		abs(latestPose.load().rotation - pose.rotation) > tolerance) {
 
 		this->latestPose.store(pose);
 		points.push_back(pose.position);

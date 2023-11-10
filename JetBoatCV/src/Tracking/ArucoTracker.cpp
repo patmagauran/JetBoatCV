@@ -108,7 +108,7 @@ void ArucoTracker::run()
 			float distance = norm(bowCenter - sternCenter);
 			float difference = distance - multiTracker->getCodeSpacing();
 			//Get difference between (bow to stern angle) and code angle
-			float angleDifference = (bowAngle - sternAngle) - multiTracker->getCodeAngle();
+			float angleDifference = abs(bowAngle - sternAngle) - multiTracker->getCodeAngle();
 
 			float qualityPos = 1 - (abs(difference) / multiTracker->getCodeSpacing());
 			float qualityAngle = 1 - (abs(angleDifference) / multiTracker->getCodeAngle());

@@ -39,6 +39,12 @@ void ObjectTrackingTracker::run()
 		}
 		cv::Mat frameBow = multiTracker->getFrame().clone();
 		cv::Mat frameStern = multiTracker->getFrame().clone();
+		/*
+		cv::Mat frame = multiTracker->getFrame();
+		cv::Mat frameBow, frameStern;
+		cv::cvtColor(frame, frameBow, cv::COLOR_BGR2GRAY);
+		frameStern = frameBow.clone();
+		*/
 		if (reinitializeTracker.load()) {
 		//	std::cout << "We need to reinit the tracker" << std::endl;
 			multiTracker->getBowSternRect(bboxBow, bboxStern);
@@ -66,12 +72,12 @@ void ObjectTrackingTracker::run()
 
 			//Angle is angle of line between bow and stern
 			float angle = atan2(bowCenter.y - sternCenter.y, bowCenter.x - sternCenter.x) * 180 / CV_PI;
-			float quality = 1;
+			//float quality = 1;
 			//Get difference between (bow to stern distance) and code spacing
 			float distance = norm(bowCenter - sternCenter);
 			float difference = distance - multiTracker->getCodeSpacing();
 			//Get difference between (bow to stern angle) and code angle
-			float angleDifference = angle - multiTracker->getCodeAngle();
+			float angleDifference = 0;
 
 			float qualityPos = 1 - (abs(difference) / multiTracker->getCodeSpacing());
 			float qualityAngle = 1 - (abs(angleDifference) / multiTracker->getCodeAngle());
