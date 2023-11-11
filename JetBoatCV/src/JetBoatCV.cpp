@@ -36,13 +36,39 @@ int main(int argc, char** argv)
 {
 	try {
 
+		//Import Course to follow
+		//Need a way to align the course with the boat in the "Aligning" Stage
+		//Need a way to scale (and rotate?) the course so it fits in the pool (This should be user controlled with hardcoded defaults once the camera is mounted)
+
+		//Then compute the distance to the course to get the current score
+
 		std::shared_ptr<State> state = std::make_shared<State>();
+	/*	Course course("");
+		state->setCourse(course);*/
 		std::shared_ptr<MultiTracker> tracker = std::make_shared<MultiTracker>(state);
 		std::shared_ptr<CameraThread> cameraThread = std::make_shared<CameraThread>(state);
 		std::shared_ptr<MainWindow> mainWindow = std::make_shared<MainWindow>(state);
-
+		long lastFrameScored = -1;
 		while (state->getStage() != STOPPING) {
+			if (state->getStage() == RUNNING) {
+				//Compute distance between boat and course
+				//Compute score
+				//Update Score in State
+				if (lastFrameScored >= state->getFrameCount()) {
+					//Already scored this frame
+					continue;
+				}
+				Pose pose = state->getPose();
+				double distance = state->getCourse()->distanceFromTrajectory(pose.position);
+				
+				//Should make this more sophisticated and take into account timing
+				long score = state->getScore();
+				score = score + distance + 1; //Add one every frame to promote quick completion
 
+				state->setScore(score);
+				lastFrameScored = state->getFrameCount();
+
+			}
 		}
 
 		return 0;

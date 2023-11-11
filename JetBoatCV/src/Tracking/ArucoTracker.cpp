@@ -101,7 +101,7 @@ void ArucoTracker::run()
 		//Average rotation of bow and stern
 		float bowAngle = bowRect.angle;
 		float sternAngle = sternRect.angle;
-		float angle = (bowAngle + sternAngle) / 2;
+		float angle = - (bowAngle + sternAngle) / 2;
 		float quality = 1;
 		if (multiTracker->getStage() == RUNNING) {
 			//Get difference between (bow to stern distance) and code spacing
@@ -111,8 +111,8 @@ void ArucoTracker::run()
 			float angleDifference = abs(bowAngle - sternAngle) - multiTracker->getCodeAngle();
 
 			float qualityPos = 1 - (abs(difference) / multiTracker->getCodeSpacing());
-			float qualityAngle = 1 - (abs(angleDifference) / multiTracker->getCodeAngle());
-
+			//float qualityAngle = 1 - (abs(angleDifference) / multiTracker->getCodeAngle());
+			float qualityAngle = 1;
 			quality = (qualityPos * QUALITY_COEF_POSITION) + (qualityAngle * QUALITY_COEF_ROTATION);
 		}
 		multiTracker->setArucoData(Pose(center, angle), quality, bowRect, sternRect, ids, corners);

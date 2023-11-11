@@ -10,12 +10,14 @@ using namespace cv;
 
 constexpr auto BOAT_WIDTH = 10;
 constexpr auto BOAT_LENGTH = 20;
+constexpr auto COURSE_FILENAME_1 = "C:\\Users\\patma\\source\\repos\\JetBoatCV\\JetBoatCV\\src\\points.csv";
 void MainWindow::run()
 {
 	//This will need to ingest the frame and points and display them on the window
 	//Also should be the primary handler of User inputs
 	//Needs to be able to stop other threads somehow
-
+	std::shared_ptr<Course> course = std::make_shared<Course>(COURSE_FILENAME_1);
+	state->setCourse(course);
 	while (1)
 	{
 		cv::Mat frame = state->getLatestFrame();
@@ -28,10 +30,26 @@ void MainWindow::run()
 		Pose pose = state->getPose();
 
 		RotatedRect boatRect = RotatedRect(pose.position, Size2f(BOAT_WIDTH, BOAT_LENGTH), pose.rotation);
+
+		if (this->state->getStage() == ALIGNINGFRAME) {
+			course->transformCourse(pose.position, pose.rotation, 1);
+			//state->setCourse(course);
+		//	if ()
+			//Need to adjust course to match the boat
+		}
+
 		//state->setBoatRect(boatRect);
 
+		//Draw Course as Points with lines connecting them
+		std::vector<Point2d> coursePoints = course->getWaypoints();
+		for (int i = 1; i < coursePoints.size(); i++)
+		{
+			//circle(displayFrame, coursePoints[i], 5, Scalar(255, 0, 0), -1);
+			
+			line(displayFrame, coursePoints[i-1], coursePoints[i], Scalar(255, 0, 0));
+		}
 
-
+		
 
 		//draw rotated rectange in opencv
 		cv::Point2f vertices[4];
@@ -70,17 +88,38 @@ void MainWindow::run()
 		std::string stageText = "Stage: " + std::to_string(state->getStage());
 		putText(displayFrame, stageText, Point(10, 60), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
 
+		//display score
+		std::string scoreText = "Score: " + std::to_string(state->getScore());
+		putText(displayFrame, scoreText, Point(10, 80), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
 
 		cv::imshow("test", displayFrame);
 
 		int k = cv::waitKey(1);
-		if (k == 27)
-		{
-			break;
-		}
-		if (state->getStage() == AppStage::ALIGNINGFRAME && k == 13)
-		{
-			state->setStage(AppStage::ALIGNCONFIRMEDBYUSER);
+		if (k >= 0) {
+			if (k == 27)
+			{
+				break;
+			}
+			if (state->getStage() == AppStage::ALIGNINGFRAME )
+			{
+				switch (k) {
+				case 13: //enter
+					state->setStage(AppStage::ALIGNCONFIRMEDBYUSER);
+
+					break;
+				case 108: //scale up(L)
+					
+					//state->setStage(AppStage::ALIGNCONFIRMEDBYUSER);
+					course->transformCourse(NULL_PT, 0, 1.1);
+					//state->setCourse(course);
+					break;
+				case 107: //scale down(K)
+					//state->setStage(AppStage::ALIGNCONFIRMEDBYUSER);
+					course->transformCourse(NULL_PT, 0, 0.9);
+					//state->setCourse(course);
+					break;
+				}
+			}
 		}
 		//cv::waitKey(1);
 	}

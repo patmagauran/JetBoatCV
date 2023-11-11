@@ -132,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Course.cpp" />
     <ClCompile Include="src\Tracking\Pose.cpp" />
     <ClCompile Include="src\Tracking\ArucoTracker.cpp" />
     <ClCompile Include="src\Tracking\MultiTracker.cpp" />
@@ -145,6 +146,7 @@
     <None Include="..\.gitignore" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Course.h" />
     <ClInclude Include="src\Tracking\Pose.h" />
     <ClInclude Include="src\Tracking\ArucoTracker.h" />
     <ClInclude Include="src\Tracking\MultiTracker.h" />

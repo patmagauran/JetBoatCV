@@ -8,6 +8,7 @@
 #include <opencv2/aruco.hpp>
 #include "tracking/Pose.h"
 #include "Util/concurrent/AppendOnlyVector.h"
+#include "Course.h"
 enum AppStage
 {
 	STARTING, ALIGNINGFRAME, ALIGNCONFIRMEDBYUSER, RUNNING, STOPPING
@@ -17,7 +18,7 @@ class State
 {
 
 	std::atomic<AppStage> stage;
-
+	std::shared_ptr<Course> course;
 
 	std::atomic<Pose> latestPose;
 	AppendOnlyVector<cv::Point2f> points; // need to replace with concurrent structure
@@ -30,6 +31,7 @@ class State
 	std::vector<int> ids;
 	std::vector<std::vector<cv::Point2f>> corners;
 	std::atomic<float> arucoQuality, trackingQuality;
+	std::atomic_llong score = 0;
 	//Other possible things to track -> number of aruco markers, number of points, 
 
 public:
@@ -45,8 +47,16 @@ public:
 	void getArucoData(std::vector<int>& ids, std::vector<std::vector<cv::Point2f>>& corners, float& quality);
 	void setTrackingData(cv::Rect bboxBow, cv::Rect bboxStern, float quality);
 	void getTrackingData(cv::Rect& bboxBow, cv::Rect& bboxStern, float& quality);
-	void addPose(Pose pose);
+	void addPose(Pose pose, bool addPoint = true);
 	Pose getPose();
+
+	void setCourse(std::shared_ptr<Course> course);
+
+	std::shared_ptr<Course> getCourse();
+
+	void setScore(long score);
+	long getScore();
+
 	//void setPoints(std::vector<cv::Point2f> points);
 	//void setBoatRect(cv::RotatedRect boatRect);
 	//cv::RotatedRect getBoatRect();

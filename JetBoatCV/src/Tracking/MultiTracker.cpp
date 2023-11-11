@@ -28,7 +28,16 @@ void MultiTracker::run()
 		if (state->getFrameCount() % 30 == 0) {
 			//initializeObjectTracker();
 		}
-		if (state->getStage() == RUNNING) {
+
+		if (state->getStage() == ALIGNINGFRAME) {
+			arucoMutex.lock();
+			Pose arucoPoseCopy = arucoPose;
+			arucoMutex.unlock();
+			state->addPose(arucoPoseCopy, false);
+
+		}
+
+		else if (state->getStage() == RUNNING) {
 			arucoMutex.lock();
 			Pose arucoPoseCopy = arucoPose;
 			double arucoQualityCopy = arucoQuality;
@@ -65,23 +74,24 @@ void MultiTracker::run()
 			}
 			state->addPose(finalPose);
 		}
-		if (state->getStage() == ALIGNCONFIRMEDBYUSER) {
+		else if (state->getStage() == ALIGNCONFIRMEDBYUSER) {
 			//check that we have two codes
 			arucoMutex.lock();
-			if (bowCodeRect.size.empty() || bowCodeRect.size.empty()) {
+			if (bowCodeRect.size.empty() || sternCodeRect.size.empty()) {
 				std::cout << "Both ArUco codes not detected, alignment not done!" << std::endl;
 				state->setStage(AppStage::ALIGNINGFRAME);
 			}
 			else {
+				Pose arucoPoseCopy = arucoPose;
 				//Calculate the code distance and angle
 				Point2f bowCenter = bowCodeRect.center;
 				Point2f sternCenter = sternCodeRect.center;
 				float bowAngle = bowCodeRect.angle;
 				float sternAngle = sternCodeRect.angle;
 				float distance = norm(bowCenter - sternCenter);
-				codeSpacing = distance;
-				codeAngle = bowAngle - sternAngle;
-				
+				codeSpacing = abs(distance);
+				codeAngle = abs(bowAngle - sternAngle);
+
 				state->setStage(AppStage::RUNNING);
 			}
 			arucoMutex.unlock();

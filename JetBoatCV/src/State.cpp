@@ -76,7 +76,7 @@ void State::getTrackingData(cv::Rect& bboxBow, cv::Rect& bboxStern, float& quali
 
 
 
-void State::addPose(Pose pose)
+void State::addPose(Pose pose, bool addPoint)
 {
 	//need to research risk of inserting while reading. We don't care if we don't recieve the latest point, but need to be sure.
 	constexpr auto tolerance = 0.1;
@@ -86,13 +86,35 @@ void State::addPose(Pose pose)
 		abs(latestPose.load().rotation - pose.rotation) > tolerance) {
 
 		this->latestPose.store(pose);
-		points.push_back(pose.position);
+		if (addPoint) {
+			points.push_back(pose.position);
+		}
 	}
 }
 
 Pose State::getPose()
 {
 	return latestPose.load();
+}
+
+void State::setCourse(std::shared_ptr<Course> course)
+{
+	this->course = course;
+}
+
+std::shared_ptr<Course> State::getCourse()
+{
+	return course;
+}
+
+void State::setScore(long score)
+{
+	this->score.store(score);
+}
+
+long State::getScore()
+{
+	return score.load();
 }
 
 //void State::setBoatRect(cv::RotatedRect boatRect)
