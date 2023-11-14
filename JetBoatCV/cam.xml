@@ -1,0 +1,32 @@
+%YAML:1.0
+---
+calibrationDate: "Mon Nov 13 10:30:44 2023"
+framesCount: 5
+cameraResolution: [ 1600, 1200 ]
+cameraMatrix: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 3.5261340912802420e+03, 0., 7.9349505613378471e+02, 0.,
+       3.2652413051745925e+03, 6.0177243517532611e+02, 0., 0., 1. ]
+cameraMatrix_std_dev: !!opencv-matrix
+   rows: 4
+   cols: 1
+   dt: d
+   data: [ 1.1903356527547710e+03, 9.7059462806113265e+02,
+       3.1794559756945011e+02, 1.8525822936542187e+02 ]
+dist_coeffs: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [ 2.6854165250534807e+00, -1.7085174714438960e+01,
+       -2.4420084033085862e-02, 9.5779820630954887e-02,
+       1.7795137236905362e+02 ]
+dist_coeffs_std_dev: !!opencv-matrix
+   rows: 5
+   cols: 1
+   dt: d
+   data: [ 1.7626020624506065e+00, 6.8595144374225939e+01,
+       1.4471778032536128e-01, 2.3897448985311281e-01,
+       1.1700552244547971e+03 ]
+avg_reprojection_error: 1.3277641103958722e+00

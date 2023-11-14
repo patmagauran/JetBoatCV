@@ -47,7 +47,7 @@ cv::RotatedRect getRotatedRectFromCornersAndEuler(std::vector<cv::Point2f> corne
 void ArucoTracker::run()
 {
 	cv::Mat cameraMatrix, distCoeffs;
-	if (!readCameraParameters("C:\\Users\\patma\\source\\repos\\JetBoatCV\\JetBoatCV\\cameraParameters.xml", cameraMatrix, distCoeffs)) {
+	if (!readCameraParameters("C:\\Users\\patma\\source\\repos\\JetBoatCV\\JetBoatCV\\cam.xml", cameraMatrix, distCoeffs)) {
 		std::cout << "Invalid camera file" << std::endl;
 	}
 	cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
@@ -66,6 +66,11 @@ void ArucoTracker::run()
 		cv::Mat frame = multiTracker->getFrame();
 		if (frame.empty())
 			continue;
+		//try converting frame to grayscale and increasing contrast
+		//cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+		//cv::equalizeHist(frame, frame);
+		//frame.convertTo(frame, -1, 2, 0); //increase the contrast by 2
+
 		std::vector<int> ids;
 		std::vector<std::vector<cv::Point2f>> corners;
 		detector.detectMarkers(frame, corners, ids);

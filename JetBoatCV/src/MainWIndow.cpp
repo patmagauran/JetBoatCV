@@ -11,6 +11,23 @@ using namespace cv;
 constexpr auto BOAT_WIDTH = 10;
 constexpr auto BOAT_LENGTH = 20;
 constexpr auto COURSE_FILENAME_1 = "C:\\Users\\patma\\source\\repos\\JetBoatCV\\JetBoatCV\\src\\points.csv";
+
+static void on_trackbar_alpha(int alpha, void* state)
+{
+	((State*)state)->setContrast(alpha / 50.0);
+	//state->setContrast(alpha / 100.0);
+}
+static void on_trackbar_beta(int beta, void* state)
+{
+	((State*)state)->setBrightness(beta - 50.0);
+	//state->setContrast(alpha / 100.0);
+}
+static void onTrackbarCamBright(int beta, void* state)
+{
+	((State*)state)->setCameraBrightness(beta);
+	//state->setContrast(alpha / 100.0);
+}
+
 void MainWindow::run()
 {
 	//This will need to ingest the frame and points and display them on the window
@@ -18,6 +35,9 @@ void MainWindow::run()
 	//Needs to be able to stop other threads somehow
 	std::shared_ptr<Course> course = std::make_shared<Course>(COURSE_FILENAME_1);
 	state->setCourse(course);
+	bool displayAuxWindow = true;
+	bool auxWindowCreated = false;
+
 	while (1)
 	{
 		cv::Mat frame = state->getLatestFrame();
@@ -93,6 +113,31 @@ void MainWindow::run()
 		putText(displayFrame, scoreText, Point(10, 80), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
 
 		cv::imshow("test", displayFrame);
+
+
+		if (displayAuxWindow) {
+			double alpha, beta;
+
+			if (!auxWindowCreated) {
+				int alpha_slider = 50, beta = 50, camBright = 64;
+
+				namedWindow("Tracker View", cv::WindowFlags::WINDOW_AUTOSIZE); // Create Window
+
+				createTrackbar("Contrast", "Tracker View", &alpha_slider, 100, on_trackbar_alpha, this->state.get());
+				createTrackbar("Brightness", "Tracker View", &beta, 100, on_trackbar_beta, this->state.get());
+				createTrackbar("Camera Brightness", "Tracker View", &camBright, 128, onTrackbarCamBright, this->state.get());
+				auxWindowCreated = true;
+			}
+
+			cv::Mat adjFrame = frame.clone();
+			//convert adjFrame to grayscale
+			//cvtColor(adjFrame, adjFrame, COLOR_BGR2GRAY);
+			alpha = this->state->getContrast();
+			beta = this->state->getBrightness();
+			adjFrame.convertTo(adjFrame, -1, alpha, beta);
+			imshow("Tracker View", adjFrame);
+			this->state->setTrackingFrame(adjFrame);
+		}
 
 		int k = cv::waitKey(1);
 		if (k >= 0) {

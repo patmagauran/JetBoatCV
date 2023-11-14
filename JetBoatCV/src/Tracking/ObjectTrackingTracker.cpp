@@ -27,10 +27,12 @@ void ObjectTrackingTracker::run()
 {
 
 	//Two trackers, one for bow, one for stern
+	TrackerKCF::Params params;
+	/*params.desc_pca = TrackerKCF::GRAY;
+	params.desc_npca = TrackerKCF::GRAY;*/
 
-
-	Ptr<Tracker> trackerBow = TrackerKCF::create();
-	Ptr<Tracker> trackerStern = TrackerKCF::create();
+	Ptr<Tracker> trackerBow = TrackerKCF::create(params);
+	Ptr<Tracker> trackerStern = TrackerKCF::create(params);
 	while (1) {
 		Rect bboxBow, bboxStern;
 

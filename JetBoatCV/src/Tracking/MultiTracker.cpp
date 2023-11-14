@@ -134,7 +134,7 @@ MultiTracker::~MultiTracker()
 
 cv::Mat MultiTracker::getFrame()
 {
-	return state->getLatestFrame();
+	return state->getTrackingFrame();
 }
 
 void MultiTracker::setArucoData(Pose pose, double quality, cv::RotatedRect bowRect, cv::RotatedRect sternRect, std::vector<int> ids, std::vector<std::vector<cv::Point2f>> corners)

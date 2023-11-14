@@ -117,6 +117,51 @@ long State::getScore()
 	return score.load();
 }
 
+void State::setContrast(double incontrast)
+{
+	this->contrast.store(incontrast);
+}
+
+double State::getContrast()
+{
+	return contrast.load();
+}
+
+void State::setBrightness(double ibrightness)
+{
+	this->brightness.store(ibrightness);
+}
+
+double State::getBrightness()
+{
+	return brightness.load();
+}
+
+void State::setCameraBrightness(double brightness)
+{
+	this->cameraBrightness.store(brightness);
+}
+
+double State::getCameraBrightness()
+{
+	return cameraBrightness.load();
+}
+
+void State::setTrackingFrame(cv::Mat frame)
+{
+	trackingFrameMutex.lock();
+	this->trackingFrame = frame;
+	trackingFrameMutex.unlock();
+}
+
+cv::Mat State::getTrackingFrame()
+{
+	trackingFrameMutex.lock();
+	cv::Mat trackingFrameCopy = this->trackingFrame.clone();
+	trackingFrameMutex.unlock();
+	return trackingFrameCopy;
+}
+
 //void State::setBoatRect(cv::RotatedRect boatRect)
 //{
 //

@@ -24,7 +24,8 @@ class State
 	AppendOnlyVector<cv::Point2f> points; // need to replace with concurrent structure
 	//cv::RotatedRect boatRect;
 	cv::Mat latestFrame; // needs a mutex lock
-	std::mutex frameMutex, arucoDataMutex, trackingDataMutex;
+	cv::Mat trackingFrame; // needs a mutex lock
+	std::mutex frameMutex, trackingFrameMutex,arucoDataMutex, trackingDataMutex;
 //	cv::Mat displayFrame;
 	std::atomic_uint64_t frameCount = 0;
 	cv::Rect bboxBow, bboxStern;
@@ -32,6 +33,10 @@ class State
 	std::vector<std::vector<cv::Point2f>> corners;
 	std::atomic<float> arucoQuality, trackingQuality;
 	std::atomic_llong score = 0;
+
+	std::atomic<double> contrast = 1.0;
+	std::atomic<double> brightness = 1.0;
+	std::atomic<double> cameraBrightness = 64;
 	//Other possible things to track -> number of aruco markers, number of points, 
 
 public:
@@ -56,6 +61,18 @@ public:
 
 	void setScore(long score);
 	long getScore();
+
+	void setContrast(double contrast);
+	double getContrast();
+
+	void setBrightness(double brightness);
+	double getBrightness();
+
+	void setCameraBrightness(double brightness);
+	double getCameraBrightness();
+
+	void setTrackingFrame(cv::Mat frame);
+	cv::Mat getTrackingFrame();
 
 	//void setPoints(std::vector<cv::Point2f> points);
 	//void setBoatRect(cv::RotatedRect boatRect);
