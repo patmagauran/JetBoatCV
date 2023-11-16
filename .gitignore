@@ -34,3 +34,6 @@
 /JetBoatCv/.vs/	
 x64/
 x86/
+
+*.onnx
+*.caffemodel

@@ -9,6 +9,8 @@
 #include "tracking/Pose.h"
 #include "Util/concurrent/AppendOnlyVector.h"
 #include "Course.h"
+#define USE_VIDEO
+
 enum AppStage
 {
 	STARTING, ALIGNINGFRAME, ALIGNCONFIRMEDBYUSER, RUNNING, STOPPING
@@ -37,6 +39,8 @@ class State
 	std::atomic<double> contrast = 1.0;
 	std::atomic<double> brightness = 1.0;
 	std::atomic<double> cameraBrightness = 64;
+
+	std::atomic<double> trackerFPS = 0;
 	//Other possible things to track -> number of aruco markers, number of points, 
 
 public:
@@ -73,6 +77,9 @@ public:
 
 	void setTrackingFrame(cv::Mat frame);
 	cv::Mat getTrackingFrame();
+
+	void setTrackerFPS(double fps);
+	double getTrackerFPS();
 
 	//void setPoints(std::vector<cv::Point2f> points);
 	//void setBoatRect(cv::RotatedRect boatRect);

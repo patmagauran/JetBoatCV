@@ -21,6 +21,9 @@ void MultiTracker::run()
 	this->objectTracker = std::make_shared<ObjectTrackingTracker>(multiTracker);
 	bool aruco = true;
 	initializeObjectTracker(true);
+#ifdef USE_VIDEO
+	this->state->setStage(AppStage::ALIGNCONFIRMEDBYUSER);
+#endif
 	while (1) {
 		if (state->getStage() == STOPPING) {
 			break;
@@ -79,7 +82,9 @@ void MultiTracker::run()
 			arucoMutex.lock();
 			if (bowCodeRect.size.empty() || sternCodeRect.size.empty()) {
 				std::cout << "Both ArUco codes not detected, alignment not done!" << std::endl;
+#ifndef USE_VIDEO
 				state->setStage(AppStage::ALIGNINGFRAME);
+#endif
 			}
 			else {
 				Pose arucoPoseCopy = arucoPose;
@@ -149,12 +154,13 @@ void MultiTracker::setArucoData(Pose pose, double quality, cv::RotatedRect bowRe
 
 }
 
-void MultiTracker::setTrackingPose(Pose pose, double quality, cv::Rect bboxBow, cv::Rect bboxStern)
+void MultiTracker::setTrackingPose(Pose pose, double quality, cv::Rect bboxBow, cv::Rect bboxStern, double fps)
 {
 	trackingMutex.lock();
 	trackingPose = pose;
 	trackingQuality = quality;
 	this->state->setTrackingData(bboxBow, bboxStern, quality);
+	this->state->setTrackerFPS(fps);
 	trackingMutex.unlock();
 }
 
@@ -183,4 +189,14 @@ double MultiTracker::getCodeAngle()
 AppStage MultiTracker::getStage()
 {
 	return state->getStage();
+}
+
+float MultiTracker::getAngle()
+{
+	return this->state->getPose().rotation;
+}
+
+Point2f MultiTracker::getCenter()
+{
+	return this->state->getPose().position;
 }

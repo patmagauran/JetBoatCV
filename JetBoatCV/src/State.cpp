@@ -80,10 +80,30 @@ void State::addPose(Pose pose, bool addPoint)
 {
 	//need to research risk of inserting while reading. We don't care if we don't recieve the latest point, but need to be sure.
 	constexpr auto tolerance = 0.1;
+	constexpr auto jumpTolerancePx = 90;
+	constexpr auto jumpToleranceAng = 1500;
+
+	//Don't insert if too far away, likely indicates a bad estimation
+	Pose latestPoseCopy = this->latestPose.load();
+	//std::cout << "Diff x " << abs(latestPoseCopy.position.x - pose.position.x) << std::endl;
+	//std::cout << "Diff y " << abs(latestPoseCopy.position.y - pose.position.y) << std::endl;
+	//std::cout << "Diff ang " << abs(latestPoseCopy.rotation - pose.rotation) << std::endl;
+
+	//std::cout << "latestPose(" << latestPoseCopy.position.x << ", " << latestPoseCopy.position.y << ", " << latestPoseCopy.rotation << ")" << std::endl;
+	//std::cout << "pose(" << pose.position.x << ", " << pose.position.y << ", " << pose.rotation << ")" << std::endl;
+	if (latestPoseCopy.position.x != 0 && latestPoseCopy.position.y != 0) {
+		if (abs(latestPoseCopy.position.x - pose.position.x) > jumpTolerancePx ||
+			abs(latestPoseCopy.position.y - pose.position.y) > jumpTolerancePx ||
+			abs(latestPoseCopy.rotation - pose.rotation) > jumpToleranceAng) {
+			//std::cout << "Jump detected, not inserting" << std::endl;
+			return;
+		}
+	}
+
 	//compare to latest pose and only insert if different enough
-	if (abs(latestPose.load().position.x - pose.position.x) > tolerance || 
-		abs(latestPose.load().position.y - pose.position.y) > tolerance || 
-		abs(latestPose.load().rotation - pose.rotation) > tolerance) {
+	if (abs(latestPoseCopy.position.x - pose.position.x) > tolerance || 
+		abs(latestPoseCopy.position.y - pose.position.y) > tolerance || 
+		abs(latestPoseCopy.rotation - pose.rotation) > tolerance) {
 
 		this->latestPose.store(pose);
 		if (addPoint) {
@@ -160,6 +180,16 @@ cv::Mat State::getTrackingFrame()
 	cv::Mat trackingFrameCopy = this->trackingFrame.clone();
 	trackingFrameMutex.unlock();
 	return trackingFrameCopy;
+}
+
+void State::setTrackerFPS(double fps)
+{
+	this->trackerFPS.store(fps);
+}
+
+double State::getTrackerFPS()
+{
+	return trackerFPS.load();
 }
 
 //void State::setBoatRect(cv::RotatedRect boatRect)

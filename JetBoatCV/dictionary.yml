@@ -1,0 +1,8 @@
+%YAML:1.0
+---
+aruco_3x3_2:
+   nmarkers: 2
+   markersize: 3
+   maxCorrectionBits: 1
+   marker_0: "011110010"
+   marker_1: "100010111"

@@ -35,6 +35,18 @@ Main thread:
 int main(int argc, char** argv)
 {
 	try {
+		//cv::aruco::Dictionary dictionary = cv::aruco::extendDictionary(2, 3);
+		//cv::Mat markerImage;
+		//cv::aruco::generateImageMarker(dictionary, 0, 200, markerImage, 1);
+		//cv::imwrite("marker0.png", markerImage);
+		//cv::aruco::generateImageMarker(dictionary, 1, 200, markerImage, 1);
+		//cv::imwrite("marker1.png", markerImage);
+
+		////Write dictionary to file
+
+		//cv::FileStorage fs("dictionary.yml", cv::FileStorage::WRITE);
+		//dictionary.writeDictionary(fs, "aruco_3x3_2");
+		//fs.release();
 
 		//Import Course to follow
 		//Need a way to align the course with the boat in the "Aligning" Stage
@@ -48,6 +60,11 @@ int main(int argc, char** argv)
 		std::shared_ptr<MultiTracker> tracker = std::make_shared<MultiTracker>(state);
 		std::shared_ptr<CameraThread> cameraThread = std::make_shared<CameraThread>(state);
 		std::shared_ptr<MainWindow> mainWindow = std::make_shared<MainWindow>(state);
+
+		//Generate ArUco Code to files
+		////https://docs.opencv.org/3.4/d5/dae/tutorial_aruco_detection.html
+
+
 		long lastFrameScored = -1;
 		while (state->getStage() != STOPPING) {
 			if (state->getStage() == RUNNING) {

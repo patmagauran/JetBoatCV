@@ -2,6 +2,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/tracking.hpp>
 #include "./MultiTracker.h"
+
+#define TRACKER_CLASS TrackerKCF
 using namespace cv;
 bool isTrackerRectEmpty(Rect rect) {
 	//std::cout << "Rect width: " << rect.width << std::endl;
@@ -18,7 +20,8 @@ bool bothArUcosTracked(Rect bow, Rect stern) {
 		return false;
 	}
 	return true;
-
+	//TrackerDaSiamRPN;
+	//TrackerMIL;
 
 	//return !isTrackerRectEmpty(bow) && !isTrackerRectEmpty(stern);
 }
@@ -27,13 +30,15 @@ void ObjectTrackingTracker::run()
 {
 
 	//Two trackers, one for bow, one for stern
-	TrackerKCF::Params params;
-	/*params.desc_pca = TrackerKCF::GRAY;
-	params.desc_npca = TrackerKCF::GRAY;*/
-
-	Ptr<Tracker> trackerBow = TrackerKCF::create(params);
-	Ptr<Tracker> trackerStern = TrackerKCF::create(params);
+	TRACKER_CLASS::Params params;
+	/*params.desc_pca = TRACKER_CLASS::GRAY;
+	params.desc_npca = TRACKER_CLASS::GRAY;*/
+	int frameNo = 0;
+	Ptr<Tracker> trackerBow = TRACKER_CLASS::create(params);
+	Ptr<Tracker> trackerStern = TRACKER_CLASS::create(params);
+	float initializedAngle = 0;
 	while (1) {
+		auto start = std::chrono::high_resolution_clock::now();
 		Rect bboxBow, bboxStern;
 
 		if (multiTracker->getStage() != AppStage::RUNNING) {
@@ -51,14 +56,24 @@ void ObjectTrackingTracker::run()
 		//	std::cout << "We need to reinit the tracker" << std::endl;
 			multiTracker->getBowSternRect(bboxBow, bboxStern);
 			if (bothArUcosTracked(bboxBow, bboxStern)) {
-				trackerBow = TrackerKCF::create();
-				trackerStern = TrackerKCF::create();
+				trackerBow = TRACKER_CLASS::create();
+				trackerStern = TRACKER_CLASS::create();
 				trackerBow->init(frameBow, bboxBow);
 				trackerStern->init(frameStern, bboxStern);
 				reinitializeTracker.store(false);
+				initializedAngle = multiTracker->getAngle();
 				continue;
 			}
 		}
+		//Rotate frame according to previous determined angle
+		//cv::Mat rotationMatrix = getRotationMatrix2D(center, rotation, 1);
+		//cv::Mat rotatedFrame;// = imageRotateWithoutCrop(adjFrame, state->getPose());
+		//cv::warpAffine(adjFrame, rotatedFrame, rotationMatrix, adjFrame.size());
+		float rotation = multiTracker->getAngle() - initializedAngle;
+		cv::Point2f center = multiTracker->getCenter();
+		cv::Mat rotationMatrix = getRotationMatrix2D(center, rotation, 1);
+		/*cv::warpAffine(frameBow, frameBow, rotationMatrix, frameBow.size());
+		frameStern = frameBow.clone();*/
 		bboxBow = Rect();
 		bboxStern = Rect();
 		bool okBow = trackerBow->update(frameBow, bboxBow);
@@ -75,6 +90,7 @@ void ObjectTrackingTracker::run()
 			//Angle is angle of line between bow and stern
 			float angle = atan2(bowCenter.y - sternCenter.y, bowCenter.x - sternCenter.x) * 180 / CV_PI;
 			angle -= 90;
+			angle += rotation + initializedAngle;
 			//float quality = 1;
 			//Get difference between (bow to stern distance) and code spacing
 			float distance = norm(bowCenter - sternCenter);
@@ -93,9 +109,10 @@ void ObjectTrackingTracker::run()
 
 			quality = 0;
 		}
-		
-		multiTracker->setTrackingPose(pose, quality, bboxBow, bboxStern);
-		
+		auto end = std::chrono::high_resolution_clock::now();
+		auto duration = duration_cast<std::chrono::milliseconds>(end - start);
+
+		multiTracker->setTrackingPose(pose, quality, bboxBow, bboxStern, (duration.count()));
 	}
 
 

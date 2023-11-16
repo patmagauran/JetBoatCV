@@ -28,6 +28,49 @@ static void onTrackbarCamBright(int beta, void* state)
 	//state->setContrast(alpha / 100.0);
 }
 
+
+/*
+def image_rotate_without_crop(mat, angle):
+	# https://stackoverflow.com/questions/22041699/rotate-an-image-without-cropping-in-opencv-in-c
+	# angle in degrees
+
+	height, width = mat.shape[:2]
+	image_center = (width/2, height/2)
+
+	rotation_mat = cv2.getRotationMatrix2D(image_center, angle, 1)
+
+	abs_cos = abs(rotation_mat[0,0])
+	abs_sin = abs(rotation_mat[0,1])
+
+	bound_w = int(height * abs_sin + width * abs_cos)
+	bound_h = int(height * abs_cos + width * abs_sin)
+
+	rotation_mat[0, 2] += bound_w/2 - image_center[0]
+	rotation_mat[1, 2] += bound_h/2 - image_center[1]
+
+	rotated_mat = cv2.warpAffine(mat, rotation_mat, (bound_w, bound_h))
+
+	return rotated_mat
+	*/
+static cv::Mat imageRotateWithoutCrop(cv::Mat input, Pose pose) {
+	cv::Mat rotated;
+	cv::Point2f center = pose.position;
+	cv::Mat rotationMatrix = cv::getRotationMatrix2D(center, pose.rotation, 1.0);
+	int height = input.rows;
+	int width = input.cols;
+	double absCos = abs(rotationMatrix.at<double>(0, 0));
+	double absSin = abs(rotationMatrix.at<double>(0, 1));
+
+	int boundW = int(height * absSin + width * absCos);
+	int boundH = int(height * absCos + width * absSin);
+
+	rotationMatrix.at<double>(0, 2) += boundW / 2 - center.x;
+	rotationMatrix.at<double>(1, 2) += boundH / 2 - center.y;
+
+	cv::warpAffine(input, rotated, rotationMatrix, cv::Size(boundW, boundH));
+	return rotated;
+}
+
 void MainWindow::run()
 {
 	//This will need to ingest the frame and points and display them on the window
@@ -37,7 +80,7 @@ void MainWindow::run()
 	state->setCourse(course);
 	bool displayAuxWindow = true;
 	bool auxWindowCreated = false;
-
+	int quadrant = 1;
 	while (1)
 	{
 		cv::Mat frame = state->getLatestFrame();
@@ -112,6 +155,24 @@ void MainWindow::run()
 		std::string scoreText = "Score: " + std::to_string(state->getScore());
 		putText(displayFrame, scoreText, Point(10, 80), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
 
+
+
+
+		//Display size of ArUco Codes
+		double arucoSize = 0;
+		//distance between corners 0 and 1
+		if (corners.size() > 0) {
+			if (corners[0].size() == 4) {
+				float w = norm(corners[0][1] - corners[0][0]);
+				float h = norm(corners[0][2] - corners[0][0]);
+				std::string arucoSizeText = "Aruco Size: " + std::to_string(w) + "x" + std::to_string(h);
+				putText(displayFrame, arucoSizeText, Point(10, 100), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+			}
+		}
+		//display FPS
+		std::string fpsText = "ms/frame: " + std::to_string(state->getTrackerFPS());
+		putText(displayFrame, fpsText, Point(10, 120), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+
 		cv::imshow("test", displayFrame);
 
 
@@ -135,7 +196,31 @@ void MainWindow::run()
 			alpha = this->state->getContrast();
 			beta = this->state->getBrightness();
 			adjFrame.convertTo(adjFrame, -1, alpha, beta);
-			imshow("Tracker View", adjFrame);
+			float rotation = 1.0* state->getPose().rotation;
+			//if (rotation < 0) {
+			//	rotation = 180 + rotation;
+			//}
+			
+			//std::cout << "Rotation(initial): " << state->getPose().rotation << " adjusted to " << rotation << std::endl;
+
+
+
+			Point2f center = state->getPose().position;
+			//std::cout << "Rotation: " << rotation << std::endl;
+			//display rotation in adjFrame
+			std::string rotationText = "Rotation: " + std::to_string(rotation);
+			cv::Mat rotationMatrix = getRotationMatrix2D(center, rotation, 1);
+			cv::Mat rotatedFrame;// = imageRotateWithoutCrop(adjFrame, state->getPose());
+			cv::warpAffine(adjFrame, rotatedFrame, rotationMatrix, adjFrame.size());
+			//Center frame on center 
+		/*	cv::Mat M = cv::Mat::eye(2, 3, CV_32F);
+			M.at<float>(0, 2) = -1 * center.x;
+			M.at<float>(1, 2) = -1 * center.y;
+			cv::warpAffine(rotatedFrame, rotatedFrame, M, adjFrame.size());*/
+			putText(rotatedFrame, rotationText, Point(10, 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+			rectangle(rotatedFrame, bboxBow, Scalar(255, 0, 0), 2, 1);
+			rectangle(rotatedFrame, bboxStern, Scalar(255, 0, 0), 2, 1);
+			imshow("Tracker View", rotatedFrame);
 			this->state->setTrackingFrame(adjFrame);
 		}
 

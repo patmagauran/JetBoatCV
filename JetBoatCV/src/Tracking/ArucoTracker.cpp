@@ -26,6 +26,8 @@ cv::Vec3d getEulerFromRvec(cv::Vec3d rvec) {
 	return cv::Vec3d(roll, pitch, yaw);
 }
 
+
+
 cv::Point2f getCenterFromCorners(std::vector<cv::Point2f> corners) {
 	if (corners.size() != 4) {
 		return cv::Point2d(0, 0);
@@ -51,11 +53,15 @@ void ArucoTracker::run()
 		std::cout << "Invalid camera file" << std::endl;
 	}
 	cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
-	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_MIP_36h12);
+//	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_MIP_36h12);
+	//cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_16h5);
+	cv::aruco::Dictionary dictionary;
+	cv::FileStorage fs("dictionary.yml", cv::FileStorage::READ);
+	dictionary.readDictionary(fs.getFirstTopLevelNode());
 	cv::aruco::ArucoDetector detector(dictionary, detectorParams);
 	// Set coordinate system
 	cv::Mat objPoints(4, 1, CV_32FC3);
-	float markerLength = 100;
+	float markerLength = 30;
 	objPoints.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(-markerLength / 2.f, markerLength / 2.f, 0);
 	objPoints.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(markerLength / 2.f, markerLength / 2.f, 0);
 	objPoints.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(markerLength / 2.f, -markerLength / 2.f, 0);
@@ -106,7 +112,9 @@ void ArucoTracker::run()
 		//Average rotation of bow and stern
 		float bowAngle = bowRect.angle;
 		float sternAngle = sternRect.angle;
-		float angle = - (bowAngle + sternAngle) / 2;
+		//float angle = - (bowAngle + sternAngle) / 2;
+		float angle = atan2(bowCenter.y - sternCenter.y, bowCenter.x - sternCenter.x) * 180 / CV_PI;
+		angle -= 90;
 		float quality = 1;
 		if (multiTracker->getStage() == RUNNING) {
 			//Get difference between (bow to stern distance) and code spacing
@@ -120,6 +128,9 @@ void ArucoTracker::run()
 			float qualityAngle = 1;
 			quality = (qualityPos * QUALITY_COEF_POSITION) + (qualityAngle * QUALITY_COEF_ROTATION);
 		}
+#ifdef USE_VIDEO
+		quality = 1;
+#endif
 		multiTracker->setArucoData(Pose(center, angle), quality, bowRect, sternRect, ids, corners);
 
 
