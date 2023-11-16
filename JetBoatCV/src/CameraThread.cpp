@@ -69,7 +69,7 @@ void CameraThread::run()
 		this->state->setLatestFrame(frame);
 #ifdef USE_VIDEO
 		//sleep 1/30 of a second
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(33));
 #endif
 	}
 

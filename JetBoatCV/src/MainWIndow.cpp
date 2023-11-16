@@ -211,16 +211,16 @@ void MainWindow::run()
 			std::string rotationText = "Rotation: " + std::to_string(rotation);
 			cv::Mat rotationMatrix = getRotationMatrix2D(center, rotation, 1);
 			cv::Mat rotatedFrame;// = imageRotateWithoutCrop(adjFrame, state->getPose());
-			cv::warpAffine(adjFrame, rotatedFrame, rotationMatrix, adjFrame.size());
+		//	cv::warpAffine(adjFrame, rotatedFrame, rotationMatrix, adjFrame.size());
 			//Center frame on center 
 		/*	cv::Mat M = cv::Mat::eye(2, 3, CV_32F);
 			M.at<float>(0, 2) = -1 * center.x;
 			M.at<float>(1, 2) = -1 * center.y;
 			cv::warpAffine(rotatedFrame, rotatedFrame, M, adjFrame.size());*/
 			putText(rotatedFrame, rotationText, Point(10, 20), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
-			rectangle(rotatedFrame, bboxBow, Scalar(255, 0, 0), 2, 1);
-			rectangle(rotatedFrame, bboxStern, Scalar(255, 0, 0), 2, 1);
-			imshow("Tracker View", rotatedFrame);
+			rectangle(adjFrame, bboxBow, Scalar(255, 0, 0), 2, 1);
+			rectangle(adjFrame, bboxStern, Scalar(255, 0, 0), 2, 1);
+			imshow("Tracker View", adjFrame);
 			this->state->setTrackingFrame(adjFrame);
 		}
 

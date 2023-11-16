@@ -6,7 +6,8 @@
 #include "./Pose.h"
 using namespace cv;
 void MultiTracker::initializeObjectTracker(bool immediate) {
-	if (immediate || this->state->getFrameCount() - lastObjectInitilizationFrame > 30) {
+	//immediate = true;
+	if (immediate || this->state->getFrameCount() - lastObjectInitilizationFrame > 5) {
 		objectTracker->TriggerReinitialization();
 		lastObjectInitilizationFrame = this->state->getFrameCount();
 	}
@@ -28,8 +29,8 @@ void MultiTracker::run()
 		if (state->getStage() == STOPPING) {
 			break;
 		}
-		if (state->getFrameCount() % 30 == 0) {
-			//initializeObjectTracker();
+		if (state->getFrameCount() % 10 == 0) {
+			initializeObjectTracker();
 		}
 
 		if (state->getStage() == ALIGNINGFRAME) {
@@ -41,6 +42,8 @@ void MultiTracker::run()
 		}
 
 		else if (state->getStage() == RUNNING) {
+			//Pose prevPose = state->getPose();
+
 			arucoMutex.lock();
 			Pose arucoPoseCopy = arucoPose;
 			double arucoQualityCopy = arucoQuality;
@@ -58,7 +61,8 @@ void MultiTracker::run()
 
 			float rotDiff = abs(arucoPoseCopy.rotation - trackingPoseCopy.rotation);
 
-			if (posDiff > POSITION_DIFF_CUTOFF || rotDiff > ROTATION_DIFF_CUTOFF) {
+			if (posDiff > POSITION_DIFF_CUTOFF || rotDiff > ROTATION_DIFF_CUTOFF || arucoQualityCopy <= 0 || trackingQualityCopy <= 0) {
+				std::cout << "Reinit" << std::endl;
 				initializeObjectTracker();
 			}
 			if (arucoQualityCopy > trackingQualityCopy) {
@@ -75,6 +79,7 @@ void MultiTracker::run()
 				}
 				finalPose = trackingPoseCopy;
 			}
+
 			state->addPose(finalPose);
 		}
 		else if (state->getStage() == ALIGNCONFIRMEDBYUSER) {

@@ -90,7 +90,7 @@ void ObjectTrackingTracker::run()
 			//Angle is angle of line between bow and stern
 			float angle = atan2(bowCenter.y - sternCenter.y, bowCenter.x - sternCenter.x) * 180 / CV_PI;
 			angle -= 90;
-			angle += rotation + initializedAngle;
+		//	angle += rotation + initializedAngle;
 			//float quality = 1;
 			//Get difference between (bow to stern distance) and code spacing
 			float distance = norm(bowCenter - sternCenter);

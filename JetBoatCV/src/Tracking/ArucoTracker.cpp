@@ -53,6 +53,9 @@ void ArucoTracker::run()
 		std::cout << "Invalid camera file" << std::endl;
 	}
 	cv::aruco::DetectorParameters detectorParams = cv::aruco::DetectorParameters();
+	detectorParams.minMarkerPerimeterRate = 0.01f;
+	//detectorParams.useAruco3Detection = true;
+	
 //	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_ARUCO_MIP_36h12);
 	//cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_16h5);
 	cv::aruco::Dictionary dictionary;
@@ -61,7 +64,7 @@ void ArucoTracker::run()
 	cv::aruco::ArucoDetector detector(dictionary, detectorParams);
 	// Set coordinate system
 	cv::Mat objPoints(4, 1, CV_32FC3);
-	float markerLength = 30;
+	float markerLength = 45;
 	objPoints.ptr<cv::Vec3f>(0)[0] = cv::Vec3f(-markerLength / 2.f, markerLength / 2.f, 0);
 	objPoints.ptr<cv::Vec3f>(0)[1] = cv::Vec3f(markerLength / 2.f, markerLength / 2.f, 0);
 	objPoints.ptr<cv::Vec3f>(0)[2] = cv::Vec3f(markerLength / 2.f, -markerLength / 2.f, 0);
@@ -115,6 +118,7 @@ void ArucoTracker::run()
 		//float angle = - (bowAngle + sternAngle) / 2;
 		float angle = atan2(bowCenter.y - sternCenter.y, bowCenter.x - sternCenter.x) * 180 / CV_PI;
 		angle -= 90;
+		std::cout << "Angle: " << angle << std::endl;
 		float quality = 1;
 		if (multiTracker->getStage() == RUNNING) {
 			//Get difference between (bow to stern distance) and code spacing
@@ -129,7 +133,7 @@ void ArucoTracker::run()
 			quality = (qualityPos * QUALITY_COEF_POSITION) + (qualityAngle * QUALITY_COEF_ROTATION);
 		}
 #ifdef USE_VIDEO
-		quality = 1;
+		//quality = 1;
 #endif
 		multiTracker->setArucoData(Pose(center, angle), quality, bowRect, sternRect, ids, corners);
 
